@@ -1,5 +1,4 @@
 import Foundation
-import CoreGraphics
 
 public struct PhysicsSystem: System {
     
@@ -25,21 +24,19 @@ public struct PhysicsSystem: System {
             let projectedY = transform.y + Int(velocity.y)
             
             let projectedRect = CGRect(
-                x: projectedX,
-                y: projectedY,
-                width: collider.width,
-                height: collider.height
+                origin: .init(x: Double(projectedX), y: Double(projectedY)),
+                size: .init(width: Double(collider.width), height: Double(collider.height))
             )
             
-            let currentRect = rect(forEntity: entity)
-            let otherBoxes = boxes.filter({ $0 != currentRect })
-            
-            let isFreeMovement = otherBoxes.allSatisfy({ !projectedRect.intersects($0) })
-            
-            if !isFreeMovement {
-                velocity.x = 0
-                velocity.y = 0
-            }
+//            let currentRect = rect(forEntity: entity)
+//            let otherBoxes = boxes.filter({ $0 != currentRect })
+//            
+//            let isFreeMovement = otherBoxes.allSatisfy({ !projectedRect.intersects($0) })
+//            
+//            if !isFreeMovement {
+//                velocity.x = 0
+//                velocity.y = 0
+//            }
         }
     }
     
@@ -48,10 +45,8 @@ public struct PhysicsSystem: System {
         let transform = entity[TransformComponent.self]!
         
         return .init(
-            x: transform.x,
-            y: transform.y,
-            width: collider.width,
-            height: collider.height
+            origin: .init(x: Double(transform.x), y: Double(transform.y)),
+            size: .init(width: Double(collider.width), height: Double(collider.height))
         )
     }
 }
