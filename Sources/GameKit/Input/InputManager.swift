@@ -1,8 +1,8 @@
 import Foundation
 
-class InputManager {
+public class InputManager {
     
-    static let shared = InputManager()
+    public static let shared = InputManager()
     private init() {}
     
     private(set) var currentDevice: InputDevice = .keyboard
@@ -13,7 +13,7 @@ class InputManager {
 
 // MARK: - API
 
-extension InputManager {
+public extension InputManager {
     func changeInputDevice(to newInputDevice: InputDevice) {
         currentDevice = newInputDevice
     }

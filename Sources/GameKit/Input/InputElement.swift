@@ -1,6 +1,6 @@
 import Foundation
 
-enum InputElement {
+public enum InputElement {
     case xAxis
     case yAxis
 }

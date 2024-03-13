@@ -7,7 +7,7 @@ enum KeyboardKey: UInt16 {
     case w = 13
 }
 
-extension InputManager {
+public extension InputManager {
     func keyDown(_ code: UInt16) { handleKeyboardInput(keyCode: code, isPressed: true) }
     func keyUp(_ code: UInt16) { handleKeyboardInput(keyCode: code, isPressed: false) }
     

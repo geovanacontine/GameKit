@@ -9,7 +9,6 @@ public struct InputSystem: System {
     
     public func update(context: GameSceneContext) {
         for entity in context.scene.queryEntities(componentTypes: requiredComponents) {
-            guard let input = entity[InputComponent.self] else { return }
             guard let velocity = entity[VelocityComponent.self] else { return }
 
             velocity.x = InputManager.shared.xAxis * velocity.maxSpeed

@@ -1,5 +1,5 @@
 import Foundation
 
-enum InputDevice {
+public enum InputDevice {
     case keyboard
 }
