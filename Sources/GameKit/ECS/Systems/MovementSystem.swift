@@ -8,7 +8,7 @@ public struct MovementSystem: System {
     ]
     
     public func update(context: GameSceneContext) {
-        for entity in context.scene.queryEntities(componentTypes: requiredComponents) {
+        for entity in context.scene.queryEntities(byComponents: requiredComponents) {
             guard let transform = entity[TransformComponent.self] else { return }
             guard let velocity = entity[VelocityComponent.self] else { return }
 

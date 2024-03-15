@@ -3,5 +3,5 @@ import Foundation
 public protocol Component {}
 
 extension Component {
-    var innerType: Component.Type { type(of: self) }
+    static var id: String { String(describing: type(of: self)) }
 }

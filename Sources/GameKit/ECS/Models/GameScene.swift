@@ -5,6 +5,7 @@ open class GameScene {
     // Structure
     private var systems: [System]
     private var entities: [Entity] = []
+    private let render: RenderProtocol
     
     // Update
     private let startTime: TimeInterval
@@ -12,18 +13,19 @@ open class GameScene {
     
     // Frame rate
     private let frameRate = 60.0
-    private var timer: Timer?
+    private var frameTimer: Timer?
     
-    public init(renderFramework: RenderFramework) {
+    // Analytics
+    private var analytics: [SystemAnalytics] = []
+    private var analyticsTimer: Timer?
+    
+    public init(render: RenderProtocol) {
         systems = []
         entities = []
+        self.render = render
         startTime = Date().timeIntervalSince1970
         lastUpdate = startTime
         setupSystems()
-        
-        let renderSystem = RenderSystem(framework: renderFramework)
-        addSystem(renderSystem)
-        
         setUpdateLoop()
         onStart()
     }
@@ -41,9 +43,11 @@ extension GameScene {
     
     private func setupSystems() {
         systems = [
+            SpawnSystem(),
             InputSystem(),
             PhysicsSystem(),
-            MovementSystem()
+            MovementSystem(),
+            RenderSystem()
         ]
     }
 }
@@ -59,8 +63,13 @@ public extension GameScene {
         entities.removeAll(where: { $0 == entity })
     }
     
-    func queryEntities(componentTypes: [Component.Type]) -> [Entity] {
-        entities.filter({ $0.hasComponents(ofTypes: componentTypes) })
+    func queryEntities(byComponents components: [Component.Type]) -> [Entity] {
+        let ids = components.map({ $0.id })
+        return entities.filter({ $0.hasComponents(withIds: ids) })
+    }
+    
+    func allEntities() -> [Entity] {
+        entities
     }
 }
 
@@ -68,7 +77,8 @@ public extension GameScene {
 
 public extension GameScene {
     func pause() {
-        timer?.invalidate()
+        frameTimer?.invalidate()
+        analyticsTimer?.invalidate()
     }
     
     func resume() {
@@ -80,8 +90,12 @@ public extension GameScene {
 
 private extension GameScene {
     func setUpdateLoop() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1/frameRate, repeats: true) { [weak self] timer in
+        frameTimer = Timer.scheduledTimer(withTimeInterval: 1/frameRate, repeats: true) { [weak self] timer in
             self?.update()
+        }
+        
+        analyticsTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] timer in
+            self?.consolidateAnalytics()
         }
     }
     
@@ -90,10 +104,49 @@ private extension GameScene {
         let deltaTime = now - lastUpdate
         lastUpdate = now
         
-        let context = GameSceneContext(scene: self, deltaTime: deltaTime)
+        let context = GameSceneContext(scene: self, deltaTime: deltaTime, render: render)
         
         for system in systems {
+            let systemType = type(of: system)
+            let start = Date().timeIntervalSince1970
+            
             system.update(context: context)
+            
+            let systemAnalytics = SystemAnalytics(
+                system: systemType,
+                updateStart: start,
+                updateEnd: Date().timeIntervalSince1970
+            )
+            
+            analytics.append(systemAnalytics)
         }
+    }
+    
+    func consolidateAnalytics() {
+        let analyticsResult = systems.map { system in
+            let systemType = type(of: system)
+            let systemAnalytics = analytics.filter({ $0.system == systemType })
+            let updateTime = systemAnalytics.map({ $0.updateDuration }).reduce(0, +)
+            return (type: systemType, time: updateTime)
+        }
+        
+        let totalTime = analyticsResult.map({ $0.time }).reduce(0, +)
+        
+        print("----------------------------------")
+        print("Total: \( String(format: "%.2f", totalTime))s")
+        print("")
+        
+        for analytics in analyticsResult {
+            let percent = (analytics.time / totalTime) * 100
+            let percentString = String(format: "%.2f", percent)
+            print("[\(String(describing: analytics.type))] - \(percentString)%")
+        }
+        
+        print("----------------------------------")
+        
+        analytics = []
+        print("\n\n\n")
+        
+        
     }
 }

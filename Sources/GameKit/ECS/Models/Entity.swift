@@ -2,30 +2,26 @@ import Foundation
 
 open class Entity {
     public let id: String = UUID().uuidString
-    private(set) var components: [Component] = []
+    private(set) var components: [String: Component] = [:]
     public init() {}
 }
 
 public extension Entity {
-    func addComponent(_ component: Component) {
-        guard !hasComponent(ofType: component.innerType) else { return }
-        components.append(component)
+    func addComponent<T: Component>(_ component: T) {
+        guard !hasComponent(withId: T.id) else { return }
+        components.updateValue(component, forKey: T.id)
     }
     
-    func removeComponent(ofType componentType: Component.Type) {
-        components.removeAll(where: { $0.innerType == componentType })
+    func removeComponent(withId component: String) {
+        components.removeValue(forKey: component)
     }
     
-    func getComponent<T: Component>(ofType componentType: T.Type) -> T? {
-        components.first(where: { $0.innerType == componentType }) as? T
+    func hasComponent(withId component: String) -> Bool {
+        components[component] != nil
     }
     
-    func hasComponent(ofType componentType: Component.Type) -> Bool {
-        self[componentType] != nil
-    }
-    
-    func hasComponents(ofTypes componentTypes: [Component.Type]) -> Bool {
-        componentTypes.allSatisfy({ hasComponent(ofType: $0) })
+    func hasComponents(withIds components: [String]) -> Bool {
+        components.allSatisfy({ hasComponent(withId: $0) })
     }
 }
 
@@ -34,7 +30,7 @@ extension Entity: Equatable {
 }
 
 public extension Entity {
-    subscript<T: Component>(_ componentType: T.Type) -> T? {
-        components.first(where: { $0.innerType == componentType }) as? T
+    subscript<T: Component>(_ component: T.Type) -> T? {
+        components[component.id] as? T
     }
 }

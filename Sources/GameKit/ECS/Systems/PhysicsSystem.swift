@@ -8,35 +8,34 @@ public struct PhysicsSystem: System {
         VelocityComponent.self
     ]
     
+    private let detectionRange = 2.0
+    
     public func update(context: GameSceneContext) {
+        let movableEntities = context.scene.queryEntities(byComponents: requiredComponents)
+        let movingEntities = movableEntities.filter({ $0[VelocityComponent.self]?.isResting == false })
         
-        let boxes = context
+        let allBoxes = context
             .scene
-            .queryEntities(componentTypes: [ColliderComponent.self, TransformComponent.self])
-            .map({ rect(forEntity: $0) })
+            .allEntities()
         
-        for entity in context.scene.queryEntities(componentTypes: requiredComponents) {
-            let collider = entity[ColliderComponent.self]!
-            let transform = entity[TransformComponent.self]!
+        for entity in movingEntities {
             let velocity = entity[VelocityComponent.self]!
 
-            let projectedX = transform.x + Int(velocity.x)
-            let projectedY = transform.y + Int(velocity.y)
+            let currentRect = rect(forEntity: entity)
+            let projectedRect = currentRect.offset(x: velocity.x, y: velocity.y)
+            let detectionRect = projectedRect.scaled(by: detectionRange)
             
-            let projectedRect = CGRect(
-                origin: .init(x: Double(projectedX), y: Double(projectedY)),
-                size: .init(width: Double(collider.width), height: Double(collider.height))
-            )
+            let boxesInRange = allBoxes
+                .map({ rect(forEntity: $0) })
+                .filter({ $0.intersects(detectionRect) })
             
-//            let currentRect = rect(forEntity: entity)
-//            let otherBoxes = boxes.filter({ $0 != currentRect })
-//            
-//            let isFreeMovement = otherBoxes.allSatisfy({ !projectedRect.intersects($0) })
-//            
-//            if !isFreeMovement {
-//                velocity.x = 0
-//                velocity.y = 0
-//            }
+            let otherBoxes = boxesInRange.filter({ $0 != currentRect })
+            let isFreeMovement = otherBoxes.allSatisfy({ !projectedRect.intersects($0) })
+            
+            if !isFreeMovement {
+                velocity.x = 0
+                velocity.y = 0
+            }
         }
     }
     
