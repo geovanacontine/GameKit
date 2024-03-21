@@ -7,23 +7,23 @@ extension CGRect: Equatable {
 }
 
 public extension CGRect {
-    func vertices() -> (x1: Double, x2: Double, y1: Double, y2: Double) {
-        let x1 = origin.x
-        let x2 = size.width + x1
-        let y1 = origin.y
-        let y2 = size.width + origin.y
-        return (x1, x2, y1, y2)
+    func vertices() -> (minX: Double, maxX: Double, minY: Double, maxY: Double) {
+        let minX = origin.x
+        let maxX = size.width + origin.x
+        let minY = origin.y
+        let maxY = size.width + origin.y
+        return (minX, maxX, minY, maxY)
     }
     
     func intersects(_ rect: CGRect) -> Bool {
         let ownVertices = self.vertices()
         let rectVertices = rect.vertices()
         
-        let xRange = rectVertices.x1...rectVertices.x2
-        let isInXRange = xRange.contains(ownVertices.x1) || xRange.contains(ownVertices.x2)
+        let xRange = rectVertices.minX...rectVertices.maxX
+        let isInXRange = xRange.contains(ownVertices.minX) || xRange.contains(ownVertices.maxX)
         
-        let yRange = rectVertices.y1...rectVertices.y2
-        let isInYRange = yRange.contains(ownVertices.y1) || yRange.contains(ownVertices.y2)
+        let yRange = rectVertices.minY...rectVertices.maxY
+        let isInYRange = yRange.contains(ownVertices.minY) || yRange.contains(ownVertices.maxY)
         
         return isInXRange && isInYRange
     }

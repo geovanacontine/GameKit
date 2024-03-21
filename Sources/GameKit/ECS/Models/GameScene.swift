@@ -146,7 +146,5 @@ private extension GameScene {
         
         analytics = []
         print("\n\n\n")
-        
-        
     }
 }

@@ -8,44 +8,26 @@ public struct PhysicsSystem: System {
         VelocityComponent.self
     ]
     
-    private let detectionRange = 2.0
-    
     public func update(context: GameSceneContext) {
-        let movableEntities = context.scene.queryEntities(byComponents: requiredComponents)
-        let movingEntities = movableEntities.filter({ $0[VelocityComponent.self]?.isResting == false })
+        let entities = context.scene.allEntities()
+        let bvh = BVH(entities: entities, maxEntities: 2)
         
-        let allBoxes = context
-            .scene
-            .allEntities()
-        
-        for entity in movingEntities {
-            let velocity = entity[VelocityComponent.self]!
-
-            let currentRect = rect(forEntity: entity)
-            let projectedRect = currentRect.offset(x: velocity.x, y: velocity.y)
-            let detectionRect = projectedRect.scaled(by: detectionRange)
-            
-            let boxesInRange = allBoxes
-                .map({ rect(forEntity: $0) })
-                .filter({ $0.intersects(detectionRect) })
-            
-            let otherBoxes = boxesInRange.filter({ $0 != currentRect })
-            let isFreeMovement = otherBoxes.allSatisfy({ !projectedRect.intersects($0) })
-            
-            if !isFreeMovement {
-                velocity.x = 0
-                velocity.y = 0
+        for collisionLeaf in bvh.collisionCheckLeaves {
+            if isColliding(entityA: collisionLeaf.entityA, entityB: collisionLeaf.entityB) {
+                constraintMovement(forEntity: collisionLeaf.entityA)
+                constraintMovement(forEntity: collisionLeaf.entityB)
             }
         }
     }
     
-    private func rect(forEntity entity: Entity) -> CGRect {
-        let collider = entity[ColliderComponent.self]!
-        let transform = entity[TransformComponent.self]!
-        
-        return .init(
-            origin: .init(x: Double(transform.x), y: Double(transform.y)),
-            size: .init(width: Double(collider.width), height: Double(collider.height))
-        )
+    private func isColliding(entityA: Entity, entityB: Entity) -> Bool {
+        guard let bodyA = AABB(entity: entityA), let bodyB = AABB(entity: entityB) else { return false }
+        return bodyA.intersects(bodyB)
+    }
+
+    private func constraintMovement(forEntity entity: Entity) {
+        guard let velocity = entity[VelocityComponent.self] else { return }
+        velocity.x = 0
+        velocity.y = 0
     }
 }

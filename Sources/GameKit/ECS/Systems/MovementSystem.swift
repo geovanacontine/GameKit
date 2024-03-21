@@ -12,8 +12,8 @@ public struct MovementSystem: System {
             guard let transform = entity[TransformComponent.self] else { return }
             guard let velocity = entity[VelocityComponent.self] else { return }
 
-            transform.x += Int(velocity.x)
-            transform.y += Int(velocity.y)
+            transform.x += velocity.x
+            transform.y += velocity.y
         }
     }
 }

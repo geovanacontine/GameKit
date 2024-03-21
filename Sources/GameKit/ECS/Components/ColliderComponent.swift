@@ -2,10 +2,10 @@ import Foundation
 
 public class ColliderComponent: Component {
     
-    public var width: Int
-    public var height: Int
+    public var width: Double
+    public var height: Double
     
-    public init(width: Int, height: Int) {
+    public init(width: Double, height: Double) {
         self.width = width
         self.height = height
     }

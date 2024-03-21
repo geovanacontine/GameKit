@@ -2,10 +2,10 @@ import Foundation
 
 public class SpawnComponent: Component {
     
-    public var x: Int
-    public var y: Int
+    public var x: Double
+    public var y: Double
     
-    public init(x: Int, y: Int) {
+    public init(x: Double, y: Double) {
         self.x = x
         self.y = y
     }
